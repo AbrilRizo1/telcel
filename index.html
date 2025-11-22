@@ -4,16 +4,14 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Juego Canasta - Navidad</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div class="stage" role="application" aria-label="Juego Canasta">
   <header>
-    <div class="header-left">
-      <img class="logo" src="logo-telcel.png" alt="Logo Telcel">
-      <div style="font-size:18px;font-weight:800;color:var(--text)">Juego: Atrapa las galletas</div>
-    </div>
-    <div class="header-right hud" aria-hidden="false">
+    <img class="logo" src="logo-telcel.png" alt="Logo Telcel">
+    <div class="title">Juego: Atrapa las galletas</div>
+    <div class="hud" aria-hidden="false">
       <div class="item">Puntos: <span id="score">0</span></div>
       <div class="item">Vidas: <span id="lives">10</span></div>
       <div class="item">Tiempo: <span id="time">20</span>s</div>
@@ -24,12 +22,13 @@
     <canvas id="game" tabindex="0"></canvas>
     <div class="footer">
       <div class="btn small" id="startBtn">Iniciar</div>
-      <div style="background:rgba(255,255,255,0.9);padding:8px 12px;border-radius:10px;font-weight:700">Usa ratón / touch / inclinar</div>
+      <div class="info-text">Usa ratón / touch / inclinar</div>
       <div class="btn small" id="resetBtn">Reiniciar</div>
     </div>
   </div>
 </div>
 
+<!-- Modal de selección de nivel -->
 <div id="levelModal">
   <div>
     <h2>Selecciona el nivel</h2>
@@ -40,7 +39,6 @@
 </div>
 
 <script>
-// ------------------- Código JS (igual que antes) -------------------
 (function(){
 'use strict';
 
@@ -49,23 +47,42 @@ const POINTS_PER_COOKIE=10;
 
 const canvas=document.getElementById('game'), ctx=canvas.getContext('2d');
 let W=0,H=0;
-function resize(){ const rect=canvas.getBoundingClientRect(); W=canvas.width=Math.floor(rect.width); H=canvas.height=Math.floor(rect.height); adjustBasketSize(); }
+function resize(){ 
+  const rect=canvas.getBoundingClientRect(); 
+  W=canvas.width=Math.floor(rect.width); 
+  H=canvas.height=Math.floor(rect.height); 
+  adjustBasketSize(); 
+}
 window.addEventListener('resize',resize);
+window.addEventListener('load', resize);
 
 let score=0,lives=LIFE_COUNT,timeLeft=START_TIME,running=false,lastTime=0;
 const cookies=[];
 const basket={x:100,y:0,w:160,h:90,speed:12};
 const imgSources=['basket.png','cookie1.png','cookie2.png','cookie3.png'];
 const images={};
-imgSources.forEach(src=>{ const img=new Image(); img.src=src; img.onload=()=>{}; img.onerror=()=>{}; images[src]=img; });
+imgSources.forEach(src=>{
+  const img=new Image();
+  img.src=src;
+  img.onload=()=>{};
+  img.onerror=()=>{};
+  images[src]=img;
+});
 
 function rand(min,max){ return Math.random()*(max-min)+min; }
-function spawnCookie(){ if(W<=0) return; const size=Math.round(rand(36,78)); const x=rand(size/2,W-size/2); const speed=rand(1.2,4.5)*COOKIE_SPEED; const which=Math.floor(rand(1,4)); const img=images['cookie'+which+'.png']; cookies.push({x,y:-size,vy:speed,size,img}); }
+function spawnCookie(){ 
+  if(W<=0) return; 
+  const size=Math.round(rand(36,78)); 
+  const x=rand(size/2,W-size/2); 
+  const speed=rand(1.2,4.5)*COOKIE_SPEED; 
+  const which=Math.floor(rand(1,4)); 
+  const img=images['cookie'+which+'.png']; 
+  cookies.push({x,y:-size,vy:speed,size,img}); 
+}
 
-let pointerX=null,left=false,right=false;
-let tiltX=null; // objetivo inclinación
+let pointerX=null,left=false,right=false, tiltX=null;
 
-// Mouse/Touch
+// Controles Mouse/Touch
 window.addEventListener('mousemove', e=>{ const r=canvas.getBoundingClientRect(); pointerX=e.clientX-r.left; });
 canvas.addEventListener('mouseleave', ()=>{ pointerX=null; });
 window.addEventListener('touchmove', e=>{ const t=e.touches[0]; const r=canvas.getBoundingClientRect(); if(t) pointerX=t.clientX-r.left; }, {passive:false});
@@ -77,7 +94,7 @@ window.addEventListener('touchcancel', ()=>{ pointerX=null; });
 window.addEventListener('keydown', e=>{ if(e.key==='ArrowLeft') left=true; if(e.key==='ArrowRight') right=true; });
 window.addEventListener('keyup', e=>{ if(e.key==='ArrowLeft') left=false; if(e.key==='ArrowRight') right=false; });
 
-// Inclinación móvil suave
+// Inclinación móvil
 window.addEventListener('deviceorientation', e=>{
   if(e.gamma!==null){
     const sensitivity=0.7;
@@ -89,11 +106,20 @@ const scoreEl=document.getElementById('score'), livesEl=document.getElementById(
 function updateHUD(){ if(scoreEl) scoreEl.textContent=score; if(livesEl) livesEl.textContent=lives; if(timeEl) timeEl.textContent=Math.ceil(timeLeft); }
 
 const startBtn=document.getElementById('startBtn'), resetBtn=document.getElementById('resetBtn');
-if(startBtn) startBtn.addEventListener('click',()=>{ if(!running) startGame(); });
-if(resetBtn) resetBtn.addEventListener('click', resetGame);
+startBtn.addEventListener('click',()=>{ if(!running) startGame(); });
+resetBtn.addEventListener('click', resetGame);
 
-function startGame(){ if(running) return; score=0;lives=LIFE_COUNT;timeLeft=START_TIME;cookies.length=0;running=true;lastTime=performance.now();resize();adjustBasketSize(); for(let i=0;i<3;i++) spawnCookie(); requestAnimationFrame(loop); }
-function resetGame(){ running=false; score=0; lives=LIFE_COUNT; timeLeft=START_TIME; cookies.length=0; updateHUD(); clearScreen(); }
+function startGame(){ 
+  if(running) return; 
+  score=0;lives=LIFE_COUNT;timeLeft=START_TIME;cookies.length=0;
+  running=true;lastTime=performance.now();resize();adjustBasketSize(); 
+  for(let i=0;i<3;i++) spawnCookie(); 
+  requestAnimationFrame(loop); 
+}
+
+function resetGame(){ 
+  running=false; score=0; lives=LIFE_COUNT; timeLeft=START_TIME; cookies.length=0; updateHUD(); clearScreen(); 
+}
 function clearScreen(){ ctx.clearRect(0,0,W,H); }
 
 function adjustBasketSize(){
@@ -107,6 +133,7 @@ function adjustBasketSize(){
 function loop(ts){
   if(!running) return;
   const dt=Math.min(0.05,(ts-lastTime)/1000); lastTime=ts; timeLeft-=dt;
+
   if(score>=WIN_SCORE){ running=false; showEnd('¡Ganaste!'); return; }
   if(timeLeft<=0){ running=false; showEnd('Tiempo terminado'); return; }
 
@@ -116,9 +143,8 @@ function loop(ts){
 
   basket.y=H-basket.h-12;
 
-  // Movimiento suave: inclinación
+  // Movimiento suave con inclinación
   if(tiltX!==null) pointerX += (tiltX - (basket.x+basket.w/2))*0.1;
-
   if(pointerX!==null){ basket.x+=(pointerX-(basket.x+basket.w/2))*0.25; }
   else { if(left) basket.x-=basket.speed; if(right) basket.x+=basket.speed; }
   basket.x=Math.max(8,Math.min(W-basket.w-8,basket.x));
@@ -146,10 +172,11 @@ function showEnd(text){
   if(/gan/i.test(text)){ setTimeout(()=>{ window.location.href='https://facebook.com'; },2500); }
 }
 
+// Inicialización
 function init(){ resize(); updateHUD(); }
 if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 
-// Nivel
+// Selección de nivel
 const levelModal=document.getElementById('levelModal');
 levelModal.querySelectorAll('button').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -157,7 +184,15 @@ levelModal.querySelectorAll('button').forEach(btn=>{
     MAX_COOKIES=parseInt(btn.dataset.max);
     WIN_SCORE=parseInt(btn.dataset.win);
     levelModal.style.display='none';
+    resize(); // recalcula layout
   });
+});
+
+// Ocultar modal automáticamente en móviles pequeños si no seleccionan nivel
+window.addEventListener('load', ()=>{
+  if(window.innerWidth <= 600){
+    setTimeout(()=>{ levelModal.style.display='none'; }, 100);
+  }
 });
 })();
 </script>
