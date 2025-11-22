@@ -138,14 +138,42 @@
     updateHUD();
     requestAnimationFrame(loop);
   }
-  
+
   function showEnd(text){
     updateHUD();
-    ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,H);
-    ctx.fillStyle='#fff'; ctx.font='28px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(text,W/2,H/2-16);
-    ctx.font='22px sans-serif'; ctx.fillText('Puntuación: '+score,W/2,H/2+20);
+    ctx.fillStyle='rgba(0,0,0,0.6)';
+    ctx.fillRect(0,0,W,H);
+  
+    ctx.textAlign='center';
+    
+    if(text === '¡Ganaste!'){
+      const thankImg = new Image();
+      thankImg.src = 'thank-you.png';
+      thankImg.onload = () => {
+        const imgW = Math.min(Math.max(W*0.3, 150), 400);
+        const imgH = imgW;
+        ctx.drawImage(thankImg, W/2 - imgW/2, H/2 - imgH/2 - 20, imgW, imgH);
+  
+        ctx.fillStyle = '#fff';
+        ctx.font = `${Math.min(Math.max(W*0.03, 18), 36)}px sans-serif`;
+        ctx.fillText('¡Gracias por mis galletas!', W/2, H/2 + imgH/2 + 10);
+        ctx.font = `${Math.min(Math.max(W*0.025, 16), 28)}px sans-serif`;
+        ctx.fillText('Puntuación: ' + score, W/2, H/2 + imgH/2 + 40);
+  
+        // Redirigir después de 2 segundos
+        setTimeout(() => {
+          window.location.href = 'https://facebook.com'; // cambia a tu URL
+        }, 2000);
+      };
+    } else {
+      ctx.fillStyle='#fff';
+      ctx.font='28px sans-serif';
+      ctx.fillText(text,W/2,H/2-16);
+      ctx.font='22px sans-serif';
+      ctx.fillText('Puntuación: '+score,W/2,H/2+20);
+    }
   }
+  
   
   function init(){ resize(); updateHUD(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
