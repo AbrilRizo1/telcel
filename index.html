@@ -4,39 +4,16 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Juego Canasta - Navidad</title>
-<style>
-:root{
-  --bg: #0b243b;
-  --panel: rgba(255,255,255,0.85);
-  --accent: #0077c8;
-  --text: #0b243b;
-}
-html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; touch-action:none;}
-body{background:#000;display:flex;align-items:center;justify-content:center;padding:12px;}
-.stage{width:100%;height:100%;max-width:1100px;max-height:100vh;background: url('bg-winter.jpg') center/cover no-repeat;border-radius:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6);position:relative;overflow:hidden;display:flex;flex-direction:column;}
-header{height:84px;display:flex;align-items:center;gap:18px;padding:10px 18px;background:linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.82));}
-header img.logo{height:58px}
-.hud{display:flex;gap:12px;align-items:center;margin-left:auto;font-weight:700;color:var(--text);font-size:22px}
-.hud .item{background:rgba(255,255,255,0.9);padding:8px 12px;border-radius:12px;font-size:1em}
-.game-area{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
-canvas{width:100%;height:100%;display:block;touch-action:none;}
-.footer{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
-.btn{background:rgba(255,255,255,0.95);padding:12px 20px;border-radius:16px;font-weight:800;font-size:20px;cursor:pointer;touch-action:manipulation;}
-.small{font-size:18px}
-
-@media(min-width:1400px){.hud{font-size:28px} header img.logo{height:72px} .btn{font-size:26px;padding:20px 34px;border-radius:20px;}}
-@media(max-width:600px){.hud{font-size:4vw} .hud .item{padding:6px 8px;font-weight:600} .btn{font-size:4vw; padding:6px 12px;}}
-#levelModal{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;}
-#levelModal div{background:var(--panel);padding:24px 36px;border-radius:14px;text-align:center;}
-#levelModal button{margin:8px;padding:12px 20px;font-size:20px;border-radius:12px;cursor:pointer;}
-</style>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="stage" role="application" aria-label="Juego Canasta">
   <header>
-    <img class="logo" src="logo-telcel.png" alt="Logo Telcel">
-    <div style="font-size:18px;font-weight:800;color:var(--text)">Juego: Atrapa las galletas</div>
-    <div class="hud" aria-hidden="false">
+    <div class="header-left">
+      <img class="logo" src="logo-telcel.png" alt="Logo Telcel">
+      <div style="font-size:18px;font-weight:800;color:var(--text)">Juego: Atrapa las galletas</div>
+    </div>
+    <div class="header-right hud" aria-hidden="false">
       <div class="item">Puntos: <span id="score">0</span></div>
       <div class="item">Vidas: <span id="lives">10</span></div>
       <div class="item">Tiempo: <span id="time">20</span>s</div>
@@ -63,6 +40,7 @@ canvas{width:100%;height:100%;display:block;touch-action:none;}
 </div>
 
 <script>
+// ------------------- Código JS (igual que antes) -------------------
 (function(){
 'use strict';
 
@@ -181,7 +159,6 @@ levelModal.querySelectorAll('button').forEach(btn=>{
     levelModal.style.display='none';
   });
 });
-
 })();
 </script>
 </body>
