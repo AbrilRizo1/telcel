@@ -112,10 +112,25 @@
     }
   
     ctx.clearRect(0,0,W,H);
-    for(const c of cookies){ 
-      if(c.img && c.img.complete){ ctx.drawImage(c.img,c.x-c.size/2,c.y-c.size/2,c.size,c.size); } 
-      else { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(c.x,c.y,c.size/2,0,Math.PI*2); ctx.fill(); } 
+    for(const c of cookies){
+      if(c.img && c.img.complete){
+        const aspect = c.img.width / c.img.height; // relación ancho/alto
+        let w = c.size;
+        let h = c.size;
+        if(aspect > 1){ // más ancho que alto
+          h = w / aspect;
+        } else { // más alto que ancho
+          w = h * aspect;
+        }
+        ctx.drawImage(c.img, c.x - w/2, c.y - h/2, w, h);
+      } else {
+        ctx.fillStyle='#fff';
+        ctx.beginPath();
+        ctx.arc(c.x,c.y,c.size/2,0,Math.PI*2);
+        ctx.fill();
+      }
     }
+    
     const basketImg=images['basket.png']; 
     if(basketImg && basketImg.complete){ ctx.drawImage(basketImg,basket.x,basket.y,basket.w,basket.h); } 
     else { ctx.fillStyle='#5a2'; ctx.fillRect(basket.x,basket.y,basket.w,basket.h); }
