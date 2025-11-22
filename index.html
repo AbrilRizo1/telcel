@@ -2,450 +2,171 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Juego Canasta - Navidad</title>
 <style>
   :root{
-    --ui-bg: rgba(0,0,0,0.4);
-    --panel: rgba(255,255,255,0.95);
-    --accent: #0078d4;
-    --max-width: 900px;
+    --bg: #0b243b;
+    --panel: rgba(255,255,255,0.85);
+    --accent: #0077c8;
+    --text: #0b243b;
   }
-  html,body{height:100%;margin:0;font-family:Inter,system-ui,Arial,sans-serif;background:#0b1220;color:#111;}
-  .wrap{max-width:var(--max-width);margin:0 auto;padding:12px;display:flex;flex-direction:column;gap:12px;}
-  header{display:flex;align-items:center;gap:12px;}
-  header img.logo{height:48px;}
-  .stage{position:relative;width:100%;aspect-ratio:16/9;background-size:cover;background-position:center;overflow:hidden;border-radius:12px;box-shadow:0 8px 24px rgba(2,6,23,0.6);}
-  .hud{position:absolute;left:8px;top:8px;background:var(--ui-bg);backdrop-filter:blur(6px);padding:8px 12px;border-radius:10px;color:white;font-weight:600;z-index:30;display:flex;gap:12px;align-items:center;}
-  .hud .goal-select select{background:transparent;border:0;color:white;font-weight:600;}
-  .controls{position:absolute;right:8px;top:8px;z-index:30;display:flex;gap:8px;}
-  button.btn{background:var(--accent);border:0;color:white;padding:8px 12px;border-radius:8px;font-weight:700;cursor:pointer;box-shadow:0 4px 10px rgba(0,0,0,0.25);}
-  button.ghost{background:transparent;border:1px solid rgba(255,255,255,0.15);color:white;padding:6px 10px;}
-  .basket{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);z-index:20;width:18%;max-width:160px;min-width:80px;touch-action:none;transition:transform 0.06s linear;}
-  .cookie{position:absolute;width:48px;height:48px;will-change:transform,opacity;user-select:none;pointer-events:none;transform-origin:center;z-index:10;}
-  .overlay{position:absolute;inset:0;background:linear-gradient(180deg,rgba(2,6,23,0.6),rgba(2,6,23,0.8));display:flex;align-items:center;justify-content:center;z-index:60;color:white;padding:20px;backdrop-filter:blur(4px);}
-  .panel{background:var(--panel);color:#0b1220;padding:20px;border-radius:12px;max-width:520px;width:100%;text-align:center;}
-  .small{font-size:0.9rem;color:#333;margin-top:8px;}
-  .instructions{font-size:0.95rem;line-height:1.3;color:white;position:absolute;left:10px;bottom:10px;z-index:40;background:linear-gradient(180deg,rgba(0,0,0,0.35),transparent);padding:8px;border-radius:8px;}
-  @media(max-width:600px){.basket{width:26%;}.cookie{width:36px;height:36px;}.hud{font-size:0.85rem}}
+  html,body{height:100%;margin:0;font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; touch-action:none;}
+  body{background:#000;display:flex;align-items:center;justify-content:center;padding:12px;}
+  .stage{width:100%;height:100%;max-width:1100px;max-height:100vh;background: url('bg-winter.jpg') center/cover no-repeat;border-radius:14px;box-shadow:0 8px 30px rgba(2,6,23,0.6);position:relative;overflow:hidden;display:flex;flex-direction:column;}
+  header{height:84px;display:flex;align-items:center;gap:18px;padding:10px 18px;background:linear-gradient(180deg, rgba(255,255,255,0.92), rgba(255,255,255,0.82));}
+  header img.logo{height:58px}
+  .hud{display:flex;gap:18px;align-items:center;margin-left:auto;font-weight:700;color:var(--text);font-size:22px}
+  .hud .item{background:rgba(255,255,255,0.9);padding:10px 14px;border-radius:12px}
+  .game-area{flex:1;display:flex;align-items:center;justify-content:center;position:relative}
+  canvas{width:100%;height:100%;display:block;touch-action:none;}
+  .footer{position:absolute;left:12px;right:12px;bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px}
+  .btn{background:rgba(255,255,255,0.95);padding:12px 20px;border-radius:16px;font-weight:800;font-size:20px;cursor:pointer;touch-action:manipulation;}
+  .small{font-size:18px}
+  @media(min-width:1400px){.hud{font-size:28px} header img.logo{height:72px} .btn{font-size:26px;padding:20px 34px;border-radius:20px;}}
+
+  /* Modal de selección de nivel */
+  #levelModal{
+    position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:1000;
+  }
+  #levelModal div{
+    background:var(--panel);padding:24px 36px;border-radius:14px;text-align:center;
+  }
+  #levelModal button{margin:8px;padding:12px 20px;font-size:20px;border-radius:12px;cursor:pointer;}
 </style>
 </head>
 <body>
-<div class="wrap">
-<header>
-<img src="logo-telcel.png" alt="Telcel" class="logo" />
-<h1 style="margin:0;font-size:1.05rem;color:white;">Juego: Atrapa las galletas</h1>
-</header>
-<main class="stage" id="stage" style="background-image:url('bg-winter.jpg');">
-<div class="hud" id="hud">
-<div>Contador:<span id="score">0</span></div>
-<div style="opacity:.9">Meta:<strong id="goalLabel">10</strong></div>
-<div class="goal-select" style="display:flex;align-items:center;gap:6px;">
-<label for="goal" style="font-weight:600;color:white">Cambiar</label>
-<select id="goal"><option value="10">10</option><option value="15">15</option><option value="20" selected>20</option></select>
+<div class="stage" role="application" aria-label="Juego Canasta">
+  <header>
+    <img class="logo" src="logo-telcel.png" alt="Logo Telcel">
+    <div style="font-size:18px;font-weight:800;color:var(--text)">Juego: Atrapa las galletas</div>
+    <div class="hud" aria-hidden="false">
+      <div class="item">Puntos: <span id="score">0</span></div>
+      <div class="item">Vidas: <span id="lives">10</span></div>
+      <div class="item">Tiempo: <span id="time">20</span>s</div>
+    </div>
+  </header>
+
+  <div class="game-area">
+    <canvas id="game" tabindex="0"></canvas>
+
+    <div class="footer">
+      <div class="btn small" id="startBtn">Iniciar</div>
+      <div style="background:rgba(255,255,255,0.9);padding:8px 12px;border-radius:10px;font-weight:700">Usa el ratón / touch o las flechas ← →</div>
+      <div class="btn small" id="resetBtn">Reiniciar</div>
+    </div>
+  </div>
 </div>
+
+<!-- Modal de niveles -->
+<div id="levelModal">
+  <div>
+    <h2>Selecciona el nivel</h2>
+    <button data-speed="0.8" data-max="4" data-win="60">Fácil</button>
+    <button data-speed="1.2" data-max="6" data-win="120">Medio</button>
+    <button data-speed="2.0" data-max="8" data-win="200">Difícil</button>
+  </div>
 </div>
-<div class="controls">
-<button id="startBtn" class="btn">Iniciar Juego</button>
-<button id="pauseBtn" class="ghost">Pausar</button>
-</div>
-<div id="basket" class="basket"><img src="basket.png" alt="Canasta" style="width:100%;display:block;"/></div>
-<div id="instructions" class="instructions">Mueve el dispositivo o desliza lateralmente para mover la canasta. Toca "Iniciar Juego".</div>
-<div id="endOverlay" class="overlay" style="display:none;">
-<div class="panel">
-<h2 id="endTitle">¡Felicidades!</h2>
-<p id="endText">Alcanzaste la meta. ¿Quieres ver la felicitación en AR?</p>
-<div style="display:flex;gap:10px;justify-content:center;margin-top:12px;">
-<button id="viewArBtn" class="btn">Ver Felicitación en AR</button>
-<button id="replayBtn" class="ghost">Jugar otra vez</button>
-</div>
-<p class="small">Nota: la experiencia AR no está implementada en este repositorio.</p>
-</div>
-</div>
-</main>
-<section style="display:flex;gap:12px;align-items:center;justify-content:space-between;">
-<div style="font-size:.95rem;color:#222;"><strong>Instrucciones:</strong> Atrapa <span id="goalInline">20</span> galletas para ganar. Puedes usar inclinación o tocar y arrastrar.</div>
-<div style="font-size:.85rem;color:#555;">Hecho con ❤️ — Reemplaza assets en /assets/</div>
-</section>
-</div>
+
 <script>
+(function(){
+  'use strict';
+  let LIFE_COUNT = 10;
+  let START_TIME = 20;
+  let COOKIE_SPEED = 1.0;
+  let WIN_SCORE = 200;
+  let MAX_COOKIES = 6;
+  const POINTS_PER_COOKIE = 10;
 
-/*
-  Juego de canasta - JavaScript
-  Notas:
-  - Reemplaza las rutas de imagen en `COOKIE_IMAGES` y la canasta si lo deseas.
-  - Para iOS 13+ que requiere permiso para DeviceMotion, llamamos a requestDeviceMotionPermission().
-*/
+  const canvas = document.getElementById('game');
+  const ctx = canvas.getContext('2d');
+  let W=0,H=0;
+  function resize(){ const rect=canvas.getBoundingClientRect(); W=canvas.width=Math.max(100,Math.floor(rect.width)); H=canvas.height=Math.max(100,Math.floor(rect.height)); adjustBasketSize(); }
+  window.addEventListener('resize',resize);
 
-const STAGE = document.getElementById('stage');
-const BASKET = document.getElementById('basket');
-const SCORE_DISPLAY = document.getElementById('score');
-const GOAL_INPUT = document.getElementById('goal');
-const GOAL_LABEL = document.getElementById('goalLabel');
-const GOAL_INLINE = document.getElementById('goalInline');
-const START_BTN = document.getElementById('startBtn');
-const PAUSE_BTN = document.getElementById('pauseBtn');
-const END_OVERLAY = document.getElementById('endOverlay');
-const VIEW_AR_BTN = document.getElementById('viewArBtn');
-const REPLAY_BTN = document.getElementById('replayBtn');
+  let score=0,lives=LIFE_COUNT,timeLeft=START_TIME,running=false,lastTime=0;
+  const cookies=[];
+  const basket={ x:100, y:0, w:160, h:90, speed:12 };
+  const imgSources=['basket.png','cookie1.png','cookie2.png','cookie3.png'];
+  const images={};
+  let imgsToLoad=imgSources.length;
+  imgSources.forEach(src=>{ const img=new Image(); img.src=src; img.onload=()=>{ imgsToLoad=Math.max(0,imgsToLoad-1); }; img.onerror=()=>{ imgsToLoad=Math.max(0,imgsToLoad-1); }; images[src]=img; });
 
-let stageRect = STAGE.getBoundingClientRect();
-let stageWidth = stageRect.width;
-let stageHeight = stageRect.height;
+  function rand(min,max){ return Math.random()*(max-min)+min; }
+  function spawnCookie(){ if(W<=0) return; const size=Math.round(rand(36,78)); const x=rand(size/2,W-size/2); const speed=rand(1.2,4.5)*COOKIE_SPEED; const which=Math.floor(rand(1,4)); const img=images['cookie'+which+'.png']; cookies.push({x,y:-size,vy:speed,size,img}); }
 
-const COOKIE_IMAGES = [
-  ' cookie1.png',
-  ' cookie2.png',
-  ' cookie3.png'
-]; // reemplaza con tus imágenes (transparencia PNG)
+  let pointerX=null,left=false,right=false;
+  window.addEventListener('mousemove', e=>{ const r=canvas.getBoundingClientRect(); pointerX=e.clientX-r.left; });
+  canvas.addEventListener('mouseleave', ()=>{ pointerX=null; });
+  window.addEventListener('touchmove', e=>{ const t=e.touches[0]; const r=canvas.getBoundingClientRect(); if(t) pointerX=t.clientX-r.left; }, {passive:false});
+  window.addEventListener('touchstart', e=>{ const t=e.touches[0]; const r=canvas.getBoundingClientRect(); if(t) pointerX=t.clientX-r.left; }, {passive:false});
+  window.addEventListener('touchend', ()=>{ pointerX=null; });
+  window.addEventListener('keydown', e=>{ if(e.key==='ArrowLeft') left=true; if(e.key==='ArrowRight') right=true; });
+  window.addEventListener('keyup', e=>{ if(e.key==='ArrowLeft') left=false; if(e.key==='ArrowRight') right=false; });
 
-let game = {
-  running: false,
-  paused: false,
-  cookies: [],
-  score: 0,
-  goal: parseInt(GOAL_INPUT.value,10),
-  spawnInterval: 800, // ms entre spawn inicial
-  spawnVariance: 400, // variación aleatoria
-  speedMin: 80, // px/s
-  speedMax: 220, // px/s
-  lastSpawn: 0,
-  lastTime: null,
-  useGyro: false,
-  basketX: 0.5 // 0..1 relative position
-};
+  const scoreEl=document.getElementById('score'), livesEl=document.getElementById('lives'), timeEl=document.getElementById('time');
+  function updateHUD(){ if(scoreEl) scoreEl.textContent=score; if(livesEl) livesEl.textContent=lives; if(timeEl) timeEl.textContent=Math.ceil(timeLeft); }
 
-GOAL_LABEL.textContent = game.goal;
-GOAL_INLINE.textContent = game.goal;
+  const startBtn=document.getElementById('startBtn'), resetBtn=document.getElementById('resetBtn');
+  if(startBtn) startBtn.addEventListener('click', ()=>{ if(!running) startGame(); });
+  if(resetBtn) resetBtn.addEventListener('click', resetGame);
 
-window.addEventListener('resize', onResize);
-GOAL_INPUT.addEventListener('change', ()=>{
-  game.goal = parseInt(GOAL_INPUT.value,10);
-  GOAL_LABEL.textContent = game.goal;
-  GOAL_INLINE.textContent = game.goal;
-});
+  function startGame(){ if(running) return; score=0;lives=LIFE_COUNT;timeLeft=START_TIME;cookies.length=0;running=true;lastTime=performance.now();resize();adjustBasketSize(); for(let i=0;i<3;i++) spawnCookie(); requestAnimationFrame(loop); }
+  function resetGame(){ running=false; score=0; lives=LIFE_COUNT; timeLeft=START_TIME; cookies.length=0; updateHUD(); clearScreen(); }
+  function clearScreen(){ ctx.clearRect(0,0,W,H); }
+  function adjustBasketSize(){ basket.w=Math.max(110,Math.min(220,W*0.18)); basket.h=Math.max(60,basket.w*0.55); basket.y=H-basket.h-12; basket.x=Math.max(8,Math.min(W-basket.w-8,basket.x)); }
 
-START_BTN.addEventListener('click', ()=>{
-  if(!game.running){
-    startGame();
-  } else if(game.paused){
-    resumeGame();
-  }
-});
-PAUSE_BTN.addEventListener('click', ()=> togglePause());
-REPLAY_BTN.addEventListener('click', ()=> restartGame());
-VIEW_AR_BTN.addEventListener('click', ()=> {
-  // El usuario indicó que no se hará AR. Mostramos placeholder.
-  alert('Botón AR: En este proyecto solo se implementa el juego HTML. La experiencia AR no está incluida.');
-});
+  function loop(ts){
+    if(!running) return;
+    const dt=Math.min(0.05,(ts-lastTime)/1000); lastTime=ts; timeLeft-=dt;
+    if(score>=WIN_SCORE){ running=false; showEnd('¡Ganaste!'); return; }
+    if(timeLeft<=0){ running=false; showEnd('Tiempo terminado'); return; }
+    const progress=Math.max(0,(START_TIME-timeLeft)/START_TIME);
+    const spawnProb=0.02+Math.min(0.06,progress*0.06);
+    if(cookies.length<MAX_COOKIES && Math.random()<spawnProb) spawnCookie();
 
-function onResize(){
-  stageRect = STAGE.getBoundingClientRect();
-  stageWidth = stageRect.width;
-  stageHeight = stageRect.height;
-}
+    basket.y=H-basket.h-12;
+    if(pointerX!==null){ basket.x+=(pointerX-(basket.x+basket.w/2))*0.25; } else { if(left) basket.x-=basket.speed; if(right) basket.x+=basket.speed; }
+    basket.x=Math.max(8,Math.min(W-basket.w-8,basket.x));
 
-function startGame(){
-  resetGame();
-  game.running = true;
-  game.paused = false;
-  START_BTN.textContent = 'Reiniciar';
-  PAUSE_BTN.textContent = 'Pausar';
-  // pedir permiso para motion (iOS)
-  requestDeviceMotionPermission();
-  game.lastTime = performance.now();
-  requestAnimationFrame(gameLoop);
-}
-
-function resetGame(){
-  // limpiar cookies visibles
-  game.cookies.forEach(c => c.el.remove());
-  game.cookies = [];
-  game.score = 0;
-  SCORE_DISPLAY.textContent = '0';
-  END_OVERLAY.style.display = 'none';
-  // posicion inicial canasta al centro
-  game.basketX = 0.5;
-  updateBasketPosition();
-}
-
-function restartGame(){
-  resetGame();
-  startGame();
-}
-
-function togglePause(){
-  if(!game.running) return;
-  game.paused = !game.paused;
-  PAUSE_BTN.textContent = game.paused ? 'Reanudar' : 'Pausar';
-  if(!game.paused){
-    game.lastTime = performance.now();
-    requestAnimationFrame(gameLoop);
-  }
-}
-
-function resumeGame(){
-  if(!game.running) return;
-  game.paused = false;
-  PAUSE_BTN.textContent = 'Pausar';
-  game.lastTime = performance.now();
-  requestAnimationFrame(gameLoop);
-}
-
-/* --- controles táctiles para arrastrar canasta --- */
-let isDragging = false;
-let dragStartX = 0;
-BASKET.addEventListener('pointerdown', (e)=>{
-  isDragging = true;
-  dragStartX = e.clientX;
-  BASKET.setPointerCapture(e.pointerId);
-});
-window.addEventListener('pointermove', (e)=>{
-  if(isDragging){
-    const dx = e.clientX - dragStartX;
-    // movemos proporcial
-    const rel = dx / stageWidth;
-    game.basketX = clamp(game.basketX + rel, 0, 1);
-    updateBasketPosition();
-    dragStartX = e.clientX;
-  }
-});
-window.addEventListener('pointerup', (e)=>{
-  if(isDragging){
-    isDragging = false;
-  }
-});
-
-/* --- controles por swipe en toda la pantalla (alternativa) --- */
-let touchStartX = null;
-STAGE.addEventListener('touchstart', (e)=>{
-  if(e.touches.length === 1){
-    touchStartX = e.touches[0].clientX;
-  }
-});
-STAGE.addEventListener('touchmove', (e)=>{
-  if(touchStartX === null) return;
-  const x = e.touches[0].clientX;
-  const dx = x - touchStartX;
-  const rel = dx / stageWidth;
-  game.basketX = clamp(game.basketX + rel,0,1);
-  updateBasketPosition();
-  touchStartX = x;
-});
-STAGE.addEventListener('touchend', ()=> touchStartX = null);
-
-/* --- gyroscope / accelerometer --- */
-function requestDeviceMotionPermission(){
-  // Safari iOS 13+ requiere permiso
-  if(typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function'){
-    DeviceMotionEvent.requestPermission().then(response=>{
-      if(response === 'granted'){
-        window.addEventListener('devicemotion', onDeviceMotion);
-        game.useGyro = true;
-      } else {
-        // no granted, usa touch
-        game.useGyro = false;
-      }
-    }).catch(()=>{ game.useGyro = false; });
-  } else {
-    // otros navegadores
-    window.addEventListener('devicemotion', onDeviceMotion);
-    game.useGyro = true;
-  }
-}
-
-let gyroBeta = 0;
-function onDeviceMotion(ev){
-  // Usamos gamma (inclinación izquierda/derecha) si existe
-  if(ev.rotationRate && ev.rotationRate.alpha !== undefined){
-    // fallback: no todos dan valores consistentes
-  }
-  // Use deviceorientation event? But devicemotion may not contain orientation.
-  // We'll also attach deviceorientation:
-}
-window.addEventListener('deviceorientation', (e)=>{
-  // gamma: tilt left/right (-90 .. 90)
-  if(e.gamma !== null && !isNaN(e.gamma)){
-    // map gamma (-30..30) to 0..1
-    const gamma = clamp(e.gamma, -40, 40);
-    const mapped = (gamma + 40) / 80; // 0..1
-    // suavizado:
-    game.basketX = lerp(game.basketX, mapped, 0.12);
-    updateBasketPosition();
-    game.useGyro = true;
-  }
-});
-
-/* --- loop principal --- */
-function gameLoop(ts){
-  if(!game.running || game.paused) return;
-  const dt = (ts - game.lastTime) / 1000; // segundos
-  game.lastTime = ts;
-
-  // spawn cookies
-  game.lastSpawn += dt * 1000;
-  const nextSpawn = game.spawnInterval + (Math.random()*game.spawnVariance - game.spawnVariance/2);
-  if(game.lastSpawn > nextSpawn){
-    spawnCookie();
-    game.lastSpawn = 0;
-  }
-
-  // actualizar cookies
-  updateCookies(dt);
-
-  // comprobar fin
-  if(game.score >= game.goal){
-    endGame();
-    return;
-  }
-
-  requestAnimationFrame(gameLoop);
-}
-
-function spawnCookie(){
-  const el = document.createElement('img');
-  el.className = 'cookie';
-  // escoger imagen aleatoria
-  const src = COOKIE_IMAGES[Math.floor(Math.random()*COOKIE_IMAGES.length)];
-  el.src = src;
-  el.alt = 'galleta';
-  // posición inicial horizontal aleatoria dentro del stage (10%..90%)
-  const x = Math.random()*0.8 + 0.1;
-  // velocidad en px/s
-  const speed = lerp(game.speedMin, game.speedMax, Math.random());
-  // pequeña rotación aleatoria
-  const rot = (Math.random()*10 - 5);
-  el.style.left = (x*100) + '%';
-  el.style.top = '-8%';
-  el.style.transform = `translate(-50%,0) rotate(${rot}deg)`;
-  STAGE.appendChild(el);
-
-  // escala pequeña según tamaño de pantalla
-  const scale = clamp(stageWidth/900, 0.6, 1.2);
-  el.style.width = (48*scale) + 'px';
-  el.style.height = 'auto';
-
-  const cookie = {
-    el, x, y: -0.08*stageHeight, // pixels (we'll use computed style instead)
-    speed,
-    rot,
-    rotationDir: Math.random() < 0.5 ? -1 : 1
-  };
-  // store with pixel x:
-  cookie.px = x * stageWidth;
-  cookie.py = -50;
-  game.cookies.push(cookie);
-}
-
-function updateCookies(dt){
-  // iteramos en copia para poder eliminar safe
-  for(let i = game.cookies.length-1; i >= 0; i--){
-    const c = game.cookies[i];
-    c.py += c.speed * dt;
-    // rotación sutil
-    c.rot += 20 * dt * c.rotationDir;
-    c.el.style.top = (c.py) + 'px';
-    c.el.style.transform = `translate(-50%,0) rotate(${c.rot}deg)`;
-
-    // si sale del fondo
-    if(c.py > stageHeight + 80){
-      // remover
-      c.el.remove();
-      game.cookies.splice(i,1);
-      continue;
+    for(let i=cookies.length-1;i>=0;i--){
+      const c=cookies[i]; c.y+=c.vy+dt*60*c.vy*0.12;
+      if(c.y+c.size/2>=basket.y){ const cx=c.x; if(cx>basket.x && cx<basket.x+basket.w){ score+=POINTS_PER_COOKIE; } else { lives-=1; } cookies.splice(i,1); if(lives<=0){ running=false; showEnd('Juego terminado'); return; } continue; }
+      if(c.y>H+200) cookies.splice(i,1);
     }
 
-    // colisión con canasta?
-    if(checkCollisionWithBasket(c)){
-      // animación de captura: escalar y desaparecer
-      captureCookie(i);
-    }
+    ctx.clearRect(0,0,W,H);
+    for(const c of cookies){ if(c.img && c.img.complete){ ctx.drawImage(c.img,c.x-c.size/2,c.y-c.size/2,c.size,c.size); } else { ctx.fillStyle='#fff'; ctx.beginPath(); ctx.arc(c.x,c.y,c.size/2,0,Math.PI*2); ctx.fill(); } }
+    const basketImg=images['basket.png']; if(basketImg && basketImg.complete){ ctx.drawImage(basketImg,basket.x,basket.y,basket.w,basket.h); } else { ctx.fillStyle='#5a2'; ctx.fillRect(basket.x,basket.y,basket.w,basket.h); }
+
+    ctx.fillStyle='rgba(255,255,255,0.6)'; ctx.fillRect(12,12,220,50);
+    ctx.fillStyle='#000'; ctx.font='18px sans-serif'; ctx.textAlign='left'; ctx.fillText('Puntos: '+score,20,40);
+
+    updateHUD();
+    requestAnimationFrame(loop);
   }
-}
 
-function checkCollisionWithBasket(cookie){
-  // bounding boxes
-  const bRect = BASKET.getBoundingClientRect();
-  const cRect = cookie.el.getBoundingClientRect();
-  // reducir caja de la canasta para mejorar la jugabilidad
-  const shrink = 0.18;
-  const bx1 = bRect.left + bRect.width*shrink;
-  const bx2 = bRect.right - bRect.width*shrink;
-  const by1 = bRect.top + bRect.height*0.1; // solo topar la parte superior
-  const by2 = bRect.bottom;
-  const cx1 = cRect.left;
-  const cx2 = cRect.right;
-  const cy1 = cRect.top;
-  const cy2 = cRect.bottom;
-  const overlap = !(cx2 < bx1 || cx1 > bx2 || cy2 < by1 || cy1 > by2);
-  return overlap;
-}
-
-function captureCookie(index){
-  const c = game.cookies[index];
-  // efecto bounce en la canasta
-  bounceBasket();
-  // aumentar score
-  game.score += 1;
-  SCORE_DISPLAY.textContent = String(game.score);
-  // efecto visual cookie: escala + fade
-  c.el.style.transition = 'transform 260ms ease, opacity 300ms ease';
-  c.el.style.transform += ' scale(0.4)';
-  c.el.style.opacity = '0';
-  // remover luego
-  setTimeout(()=>{ try{ c.el.remove(); }catch(e){} }, 320);
-  game.cookies.splice(index,1);
-  // ajustar dificultad leve cada cierto puntaje (opcional)
-  if(game.score % 5 === 0){
-    // hacer spawn más rápido y/o aumentar velocidad máxima
-    game.spawnInterval = Math.max(350, game.spawnInterval - 40);
-    game.speedMax = Math.min(420, game.speedMax + 10);
+  function showEnd(text){
+    updateHUD();
+    ctx.fillStyle='rgba(0,0,0,0.6)'; ctx.fillRect(0,0,W,H);
+    ctx.fillStyle='#fff'; ctx.font='28px sans-serif'; ctx.textAlign='center';
+    ctx.fillText(text,W/2,H/2-16);
+    ctx.font='22px sans-serif'; ctx.fillText('Puntuación: '+score,W/2,H/2+20);
+    if(/gan/i.test(text)){ setTimeout(()=>{ window.location.href='https://facebook.com'; },2500); }
   }
-}
 
-function bounceBasket(){
-  BASKET.animate([
-    { transform: BASKET.style.transform + ' translateY(0px)' },
-    { transform: BASKET.style.transform + ' translateY(-8px)' },
-    { transform: BASKET.style.transform + ' translateY(0px)' }
-  ], { duration: 280, easing: 'cubic-bezier(.17,.67,.47,1.69)'});
-}
+  function init(){ resize(); updateHUD(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
 
-/* coloca la canasta según game.basketX (0..1) */
-function updateBasketPosition(){
-  const x = clamp(game.basketX,0,1);
-  // posición en px centrada: left = x*stageWidth
-  const leftPx = x * stageWidth;
-  BASKET.style.left = leftPx + 'px';
-  BASKET.style.transform = 'translateX(-50%)';
-}
-
-/* fin de juego */
-function endGame(){
-  game.running = false;
-  END_OVERLAY.style.display = 'flex';
-  document.getElementById('endTitle').textContent = '¡Felicidades!';
-  document.getElementById('endText').textContent = `Atrapaste ${game.score} galletas.`;
-}
-
-/* util */
-function clamp(v,min,max){ return Math.max(min, Math.min(max, v)); }
-function lerp(a,b,t){ return a + (b-a) * t; }
-
-/* inicial */
-(function init(){
-  // posicion inicial basket
-  onResize();
-  game.basketX = 0.5;
-  updateBasketPosition();
-
-  // preload images
-  COOKIE_IMAGES.forEach(src => { const i = new Image(); i.src = src; });
-  const basketImg = new Image(); basketImg.src = BASKET.querySelector('img')?.src || '';
-
-  // shortcuts keyboard: space to start/pause
-  window.addEventListener('keydown', (e)=>{
-    if(e.code === 'Space'){ e.preventDefault(); if(!game.running) startGame(); else togglePause(); }
+  // Selección de nivel
+  const levelModal=document.getElementById('levelModal');
+  levelModal.querySelectorAll('button').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      COOKIE_SPEED=parseFloat(btn.dataset.speed);
+      MAX_COOKIES=parseInt(btn.dataset.max);
+      WIN_SCORE=parseInt(btn.dataset.win);
+      levelModal.style.display='none';
+    });
   });
 })();
 </script>
