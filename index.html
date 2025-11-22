@@ -2,12 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Juego Canasta - Navidad</title>
-<link rel="stylesheet" href="style.css" />
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="stage" role="application" aria-label="Juego Canasta">
+
+  <!-- Header fijo -->
   <header>
     <img class="logo" src="logo-telcel.png" alt="Logo Telcel">
     <div class="title">Juego: Atrapa las galletas</div>
@@ -18,19 +20,22 @@
     </div>
   </header>
 
-  <div class="game-area">
+  <!-- Canvas flexible -->
+  <div class="game-container">
     <canvas id="game" tabindex="0"></canvas>
   </div>
 
-  <div class="control-bar">
+  <!-- Footer fijo -->
+  <footer>
     <div class="btn" id="startBtn">Iniciar</div>
-    <div class="btn" id="resetBtn">Reiniciar</div>
     <div class="info">Usa ratón / touch / inclinar</div>
-  </div>
+    <div class="btn" id="resetBtn">Reiniciar</div>
+  </footer>
 </div>
 
+<!-- Modal de selección de nivel -->
 <div id="levelModal">
-  <div>
+  <div class="modal-content">
     <h2>Selecciona el nivel</h2>
     <button data-speed="0.8" data-max="4" data-win="60">Fácil</button>
     <button data-speed="1.2" data-max="6" data-win="120">Medio</button>
