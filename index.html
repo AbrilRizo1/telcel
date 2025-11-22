@@ -4,14 +4,14 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
 <title>Juego Canasta - Navidad</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div class="stage" role="application" aria-label="Juego Canasta">
   <header>
     <img class="logo" src="logo-telcel.png" alt="Logo Telcel">
     <div class="title">Juego: Atrapa las galletas</div>
-    <div class="hud" aria-hidden="false">
+    <div class="hud">
       <div class="item">Puntos: <span id="score">0</span></div>
       <div class="item">Vidas: <span id="lives">10</span></div>
       <div class="item">Tiempo: <span id="time">20</span>s</div>
@@ -20,16 +20,17 @@
 
   <div class="game-area">
     <canvas id="game" tabindex="0"></canvas>
-    <div class="footer">
-      <div class="btn small" id="startBtn">Iniciar</div>
-      <div class="tip">Usa ratón / touch / inclinar</div>
-      <div class="btn small" id="resetBtn">Reiniciar</div>
-    </div>
+  </div>
+
+  <div class="control-bar">
+    <div class="btn" id="startBtn">Iniciar</div>
+    <div class="btn" id="resetBtn">Reiniciar</div>
+    <div class="info">Usa ratón / touch / inclinar</div>
   </div>
 </div>
 
 <div id="levelModal">
-  <div class="modal-content">
+  <div>
     <h2>Selecciona el nivel</h2>
     <button data-speed="0.8" data-max="4" data-win="60">Fácil</button>
     <button data-speed="1.2" data-max="6" data-win="120">Medio</button>
