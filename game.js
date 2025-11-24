@@ -162,7 +162,7 @@
   
         // Redirigir después de 2 segundos
         setTimeout(() => {
-          window.location.href = 'https://facebook.com'; // cambia a tu URL
+          window.location.href = 'https://abrilrizo1.github.io/Telcel-memorama'; // cambia a tu URL
         }, 2000);
       };
     } else {
