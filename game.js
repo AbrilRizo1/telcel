@@ -1,8 +1,8 @@
 (function(){
   'use strict';
-  
-  let LIFE_COUNT=10, START_TIME=20, COOKIE_SPEED=1.0, WIN_SCORE=200, MAX_COOKIES=6;
-  const POINTS_PER_COOKIE=10;
+
+  let LIFE_COUNT, START_TIME=45, COOKIE_SPEED, WIN_SCORE, MAX_COOKIES;
+  let POINTS_PER_COOKIE;
   
   const canvas=document.getElementById('game'), ctx=canvas.getContext('2d');
   let W=0,H=0;
@@ -15,26 +15,25 @@
   }
   window.addEventListener('resize',resize);
   
-  let score=0, lives=LIFE_COUNT, timeLeft=START_TIME, running=false, lastTime=0;
+  let score=0, lives, timeLeft=START_TIME, running=false, lastTime=0;
   const cookies=[];
   const basket={x:100,y:0,w:160,h:90,speed:12};
-
-  // 6 imágenes de galletas
-  const imgSources = ['basket.png','cookie1.png','cookie2.png','cookie3.png','cookie4.png','cookie5.png','cookie6.png'];
+  
+  const imgSources = ['basket.png','cookie1.png','cookie2.png','cookie3.png','cookie4.png','cookie5.png','cookie6.png','thank-you.png'];
   const images={};
   imgSources.forEach(src=>{ const img=new Image(); img.src=src; images[src]=img; });
-  
+
   function rand(min,max){ return Math.random()*(max-min)+min; }
   function spawnCookie(){ 
     if(W<=0) return; 
     const size=Math.round(rand(36,78)); 
     const x=rand(size/2,W-size/2); 
     const speed=rand(1.2,4.5)*COOKIE_SPEED; 
-    const which=Math.floor(rand(1,7)); // 1 a 6
+    const which=Math.floor(rand(1,7));
     const img=images['cookie'+which+'.png']; 
     cookies.push({x,y:-size,vy:speed,size,img}); 
   }
-  
+
   let pointerX=null,left=false,right=false, tiltX=null;
   
   window.addEventListener('mousemove', e=>{ const r=canvas.getBoundingClientRect(); pointerX=e.clientX-r.left; });
@@ -46,20 +45,21 @@
   window.addEventListener('keydown', e=>{ if(e.key==='ArrowLeft') left=true; if(e.key==='ArrowRight') right=true; });
   window.addEventListener('keyup', e=>{ if(e.key==='ArrowLeft') left=false; if(e.key==='ArrowRight') right=false; });
   window.addEventListener('deviceorientation', e=>{ if(e.gamma!==null){ const sensitivity=0.7; tiltX = W/2 + (e.gamma/45)*(W/2)*sensitivity; } });
-  
+
   const scoreEl=document.getElementById('score'), livesEl=document.getElementById('lives'), timeEl=document.getElementById('time');
+
   function updateHUD(){ if(scoreEl) scoreEl.textContent=score; if(livesEl) livesEl.textContent=lives; if(timeEl) timeEl.textContent=Math.ceil(timeLeft); }
-  
+
   const startBtn=document.getElementById('startBtn'), resetBtn=document.getElementById('resetBtn');
   if(startBtn) startBtn.addEventListener('click',()=>{
     if(levelModal.style.display !== 'none'){
-      levelModal.style.display='flex'; // mostrar modal si no se eligió nivel
+      levelModal.style.display='flex';
     } else if(!running){
       startGame();
     }
   });
   if(resetBtn) resetBtn.addEventListener('click', resetGame);
-  
+
   function startGame(){ 
     if(running) return; 
     score=0;lives=LIFE_COUNT;timeLeft=START_TIME;cookies.length=0;
@@ -72,7 +72,7 @@
     running=false; score=0; lives=LIFE_COUNT; timeLeft=START_TIME; cookies.length=0; 
     updateHUD(); clearScreen(); 
   }
-  
+
   function clearScreen(){ ctx.clearRect(0,0,W,H); }
   
   function adjustBasketSize(){
@@ -82,23 +82,23 @@
     basket.y=H-basket.h-12;
     basket.x=Math.max(8,Math.min(W-basket.w-8,basket.x));
   }
-  
+
   function loop(ts){
     if(!running) return;
     const dt=Math.min(0.05,(ts-lastTime)/1000); lastTime=ts; timeLeft-=dt;
-  
+
     if(score>=WIN_SCORE){ running=false; showEnd('¡Ganaste!'); return; }
     if(timeLeft<=0){ running=false; showEnd('Tiempo terminado'); return; }
-  
+
     const progress=Math.max(0,(START_TIME-timeLeft)/START_TIME);
     const spawnProb=0.02+Math.min(0.06,progress*0.06);
     if(cookies.length<MAX_COOKIES && Math.random()<spawnProb) spawnCookie();
-  
+
     basket.y=H-basket.h-12;
     if(tiltX!==null) pointerX += (tiltX-(basket.x+basket.w/2))*0.1;
     if(pointerX!==null){ basket.x+=(pointerX-(basket.x+basket.w/2))*0.25; } else { if(left) basket.x-=basket.speed; if(right) basket.x+=basket.speed; }
     basket.x=Math.max(8,Math.min(W-basket.w-8,basket.x));
-  
+
     for(let i=cookies.length-1;i>=0;i--){
       const c=cookies[i]; c.y+=c.vy+dt*60*c.vy*0.12;
       if(c.y+c.size/2>=basket.y){ 
@@ -110,18 +110,14 @@
       }
       if(c.y>H+200) cookies.splice(i,1);
     }
-  
+
     ctx.clearRect(0,0,W,H);
     for(const c of cookies){
       if(c.img && c.img.complete){
-        const aspect = c.img.width / c.img.height; // relación ancho/alto
+        const aspect = c.img.width / c.img.height;
         let w = c.size;
         let h = c.size;
-        if(aspect > 1){ // más ancho que alto
-          h = w / aspect;
-        } else { // más alto que ancho
-          w = h * aspect;
-        }
+        if(aspect > 1){ h = w / aspect; } else { w = h * aspect; }
         ctx.drawImage(c.img, c.x - w/2, c.y - h/2, w, h);
       } else {
         ctx.fillStyle='#fff';
@@ -130,11 +126,11 @@
         ctx.fill();
       }
     }
-    
+
     const basketImg=images['basket.png']; 
     if(basketImg && basketImg.complete){ ctx.drawImage(basketImg,basket.x,basket.y,basket.w,basket.h); } 
     else { ctx.fillStyle='#5a2'; ctx.fillRect(basket.x,basket.y,basket.w,basket.h); }
-  
+
     updateHUD();
     requestAnimationFrame(loop);
   }
@@ -143,9 +139,9 @@
     updateHUD();
     ctx.fillStyle='rgba(0,0,0,0.6)';
     ctx.fillRect(0,0,W,H);
-  
+
     ctx.textAlign='center';
-    
+
     if(text === '¡Ganaste!'){
       const thankImg = new Image();
       thankImg.src = 'thank-you.png';
@@ -153,16 +149,15 @@
         const imgW = Math.min(Math.max(W*0.3, 150), 400);
         const imgH = imgW;
         ctx.drawImage(thankImg, W/2 - imgW/2, H/2 - imgH/2 - 20, imgW, imgH);
-  
+
         ctx.fillStyle = '#fff';
         ctx.font = `${Math.min(Math.max(W*0.03, 18), 36)}px sans-serif`;
         ctx.fillText('¡Gracias por mis galletas!', W/2, H/2 + imgH/2 + 10);
         ctx.font = `${Math.min(Math.max(W*0.025, 16), 28)}px sans-serif`;
         ctx.fillText('Puntuación: ' + score, W/2, H/2 + imgH/2 + 40);
-  
-        // Redirigir después de 2 segundos
+
         setTimeout(() => {
-          window.location.href = 'https://abrilrizo1.github.io/Telcel-memorama'; // cambia a tu URL
+          window.location.href = 'https://abrilrizo1.github.io/Telcel-memorama';
         }, 2000);
       };
     } else {
@@ -173,20 +168,23 @@
       ctx.fillText('Puntuación: '+score,W/2,H/2+20);
     }
   }
-  
-  
+
   function init(){ resize(); updateHUD(); }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init); else init();
-  
-  // Modal niveles
+
   const levelModal=document.getElementById('levelModal');
   levelModal.querySelectorAll('button').forEach(btn=>{
     btn.addEventListener('click',()=>{
       COOKIE_SPEED=parseFloat(btn.dataset.speed);
-      MAX_COOKIES = 6; // siempre 6 galletas
       WIN_SCORE=parseInt(btn.dataset.win);
+      const lvl=btn.dataset.level;
+      MAX_COOKIES=6;
+      if(lvl==='Fácil'){ LIFE_COUNT=5; POINTS_PER_COOKIE=5; }
+      if(lvl==='Medio'){ LIFE_COUNT=3; POINTS_PER_COOKIE=10; }
+      if(lvl==='Difícil'){ LIFE_COUNT=2; POINTS_PER_COOKIE=15; }
       levelModal.style.display='none';
-      startGame(); // inicia automáticamente al elegir nivel
+      startGame();
     });
   });
+
 })();
