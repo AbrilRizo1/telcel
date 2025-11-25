@@ -69,9 +69,16 @@
   }
   
   function resetGame(){ 
-    running=false; score=0; lives=LIFE_COUNT; timeLeft=START_TIME; cookies.length=0; 
-    updateHUD(); clearScreen(); 
+    running = false;
+    score = 0;
+    lives = LIFE_COUNT || 5; // si no se eligió nivel, predeterminado
+    timeLeft = START_TIME;
+    cookies.length = 0; 
+    updateHUD();
+    clearScreen(); 
+    levelModal.style.display = 'flex'; // volver a mostrar modal
   }
+  
 
   function clearScreen(){ ctx.clearRect(0,0,W,H); }
   
@@ -174,11 +181,11 @@
 
   const levelModal=document.getElementById('levelModal');
   levelModal.querySelectorAll('button').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      COOKIE_SPEED=parseFloat(btn.dataset.speed);
-      WIN_SCORE=parseInt(btn.dataset.win);
-      const lvl=btn.dataset.level;
-      MAX_COOKIES=6;
+    btn.addEventListener('pointerdown',()=>{
+      COOKIE_SPEED = parseFloat(btn.dataset.speed);
+      WIN_SCORE = parseInt(btn.dataset.win);
+      const lvl = btn.dataset.level;
+      MAX_COOKIES = 6;
       if(lvl==='Fácil'){ LIFE_COUNT=5; POINTS_PER_COOKIE=5; }
       if(lvl==='Medio'){ LIFE_COUNT=3; POINTS_PER_COOKIE=10; }
       if(lvl==='Difícil'){ LIFE_COUNT=2; POINTS_PER_COOKIE=15; }
